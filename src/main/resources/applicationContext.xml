@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<!-- 配置自动扫描的包  不扫描controller -->
+	<context:component-scan base-package="com.ldz">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+
+	<!-- 加载properties -->
+	<context:property-placeholder ignore-unresolvable="true" location="classpath:mysql.properties"/>
+	<!-- c3p0数据源配置 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${mysql.driverClass}"></property>
+		<property name="jdbcUrl" value="${mysql.jdbcUrl}"></property>
+		<property name="user" value="${mysql.user}"></property>
+		<property name="password" value="${mysql.password}"></property>
+	</bean>
+	
+	<!-- spring-mybatis配置 -->
+	<!-- 创建sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	  <property name="dataSource" ref="dataSource" />
+	  <!-- 加载 mybatis-config.xml -->
+	  <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+	  <!-- 加载 mapper.xml -->
+	  <property name="mapperLocations" value="classpath:mapper/*Mapper.xml"></property>
+	  <property name="plugins">
+	  	<array>
+	  		<bean class="com.github.pagehelper.PageInterceptor">
+	  			<property name="properties">
+	  				<value>reasonable = true</value>
+	  			</property>
+	  		</bean>
+	  	</array>
+	  </property>
+	</bean>
+	
+	<!-- 创建sqlSession -->	
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	  <constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	
+	<!-- 配置扫描器 将接口加入IOC容器 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	  <property name="basePackage" value="com.ldz.mapper" />
+	</bean>
+
+	<!-- 开启事务 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	  <property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- aop配置 -->
+	<aop:config>
+		<aop:pointcut id="txPoint" expression="execution(* com.ldz.service.*.*(..))"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>	
+	</aop:config>
+	
+	<!-- 事务增强 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*"/>
+			<tx:method name="select*" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+</beans>

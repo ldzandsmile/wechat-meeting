@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ldz.mapper.OrdersMapper">
+  <resultMap id="BaseResultMap" type="com.ldz.model.Orders">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="is_success" jdbcType="BIT" property="isSuccess" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="meetingroom" jdbcType="VARCHAR" property="meetingroom" />
+    <result column="host" jdbcType="VARCHAR" property="host" />
+    <result column="contents" jdbcType="VARCHAR" property="contents" />
+    <result column="participants" jdbcType="VARCHAR" property="participants" />
+    <result column="organizer" jdbcType="VARCHAR" property="organizer" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, username, is_success, start_time, end_time, meetingroom, host, contents, participants, 
+    organizer
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from orders
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  
+    <!-- 查询全部未审核预定消息 -->
+  <select id="selectOrdersByIsSuccess" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from orders
+    where is_success = 0
+  </select>
+  
+  <!-- 一个账号只能同时预约一次  查询 username 和 end_time -->
+  <select id="selectOrdersByUsernameAndEndTime" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from orders
+    where username= #{username,jdbcType=VARCHAR} and start_time &gt; #{endTime,jdbcType=VARCHAR}
+    
+  </select>
+  
+  <!-- //查询接下来一周内所有预约消息   -->
+  <select id="selectOrdersNextWeek" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from orders
+    where start_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+    	and end_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+  		and meetingroom = #{meetingroom,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from orders
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ldz.model.Orders">
+    insert into orders (id, username, is_success, 
+      start_time, end_time, meetingroom, 
+      host, contents, participants, 
+      organizer)
+    values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{isSuccess,jdbcType=BIT}, 
+      #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{meetingroom,jdbcType=VARCHAR}, 
+      #{host,jdbcType=VARCHAR}, #{contents,jdbcType=VARCHAR}, #{participants,jdbcType=VARCHAR}, 
+      #{organizer,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ldz.model.Orders">
+    insert into orders
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="isSuccess != null">
+        is_success,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="meetingroom != null">
+        meetingroom,
+      </if>
+      <if test="host != null">
+        host,
+      </if>
+      <if test="contents != null">
+        contents,
+      </if>
+      <if test="participants != null">
+        participants,
+      </if>
+      <if test="organizer != null">
+        organizer,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="isSuccess != null">
+        #{isSuccess,jdbcType=BIT},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="meetingroom != null">
+        #{meetingroom,jdbcType=VARCHAR},
+      </if>
+      <if test="host != null">
+        #{host,jdbcType=VARCHAR},
+      </if>
+      <if test="contents != null">
+        #{contents,jdbcType=VARCHAR},
+      </if>
+      <if test="participants != null">
+        #{participants,jdbcType=VARCHAR},
+      </if>
+      <if test="organizer != null">
+        #{organizer,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ldz.model.Orders">
+    update orders
+    <set>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="isSuccess != null">
+        is_success = #{isSuccess,jdbcType=BIT},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="meetingroom != null">
+        meetingroom = #{meetingroom,jdbcType=VARCHAR},
+      </if>
+      <if test="host != null">
+        host = #{host,jdbcType=VARCHAR},
+      </if>
+      <if test="contents != null">
+        contents = #{contents,jdbcType=VARCHAR},
+      </if>
+      <if test="participants != null">
+        participants = #{participants,jdbcType=VARCHAR},
+      </if>
+      <if test="organizer != null">
+        organizer = #{organizer,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ldz.model.Orders">
+    update orders
+    set username = #{username,jdbcType=VARCHAR},
+      is_success = #{isSuccess,jdbcType=BIT},
+      start_time = #{startTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      meetingroom = #{meetingroom,jdbcType=VARCHAR},
+      host = #{host,jdbcType=VARCHAR},
+      contents = #{contents,jdbcType=VARCHAR},
+      participants = #{participants,jdbcType=VARCHAR},
+      organizer = #{organizer,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
